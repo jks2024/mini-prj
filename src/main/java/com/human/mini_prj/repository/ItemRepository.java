@@ -53,5 +53,4 @@ public interface ItemRepository extends JpaRepository<Item, Long> {  // JPA 설�
     // 10. count : 판매 상태별 상품 개수 (List가 아니라 long 반환)
     // SQL : select count(*) from item where item_sell_status = ?
     long countByItemSellStatus(ItemSellStatus itemSellStatus);
-
 }

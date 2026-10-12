@@ -7,11 +7,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
 @SpringBootTest
+@Transactional
 class ItemRepositoryTest {
     @Autowired
     private ItemRepository itemRepository;  // 필드를 통한 의존성 주입
@@ -42,6 +45,36 @@ class ItemRepositoryTest {
         }
     }
 
+    @Test
+    @DisplayName("상품명 OR 상세 설명으로 조회")
+    void findByItemNmOrItemDetailTest() {
+        this.createItemTest();
+        List<Item> itemList = itemRepository.findByItemNmOrItemDetail("테스트 상품1", "테스트 상품 상세 설명5");
+        for (Item item : itemList) {
+            log.info("상품명 OR 상세 설명으로 조회 테스트 : {}", item);
+        }
+    }
 
+    @Test
+    @DisplayName("가격 LessThan 조회")
+    void findByPriceLessThanTest() {
+        this.createItemTest();
+        List<Item> itemList = itemRepository.findByPriceLessThanOrderByPriceDesc(5000);
+
+        for (Item item : itemList) {
+            log.info("가격 LessThan 조회 테스트 : {}", item);
+        }
+    }
+
+    @Test
+    @DisplayName("가격 Between 조회")
+    void findByPriceBetweenTest() {
+        this.createItemTest();
+        List<Item> itemList = itemRepository.findByPriceBetween(3000, 6000);
+
+        for (Item item : itemList) {
+            log.info("가격 Between 조회 테스트 : {}", item);
+        }
+    }
 
 }
