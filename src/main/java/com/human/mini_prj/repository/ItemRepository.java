@@ -61,7 +61,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {  // JPA 설�
 
     // nativeQuery: 실제 데이터베이스에서 상용하는 쿼리를 그대로 사용
     @Query(value = "SELECT * FROM item WHERE item_detail LIKE %:itemDetail% ORDER BY price DESC", nativeQuery = true)
-    List<Item> findByItemSellStatusNative(ItemSellStatus itemDetail);
+    List<Item> findByItemDetailLikeNative(String itemDetail);
 
 
 }
