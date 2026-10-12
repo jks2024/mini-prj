@@ -3,6 +3,7 @@ package com.human.mini_prj.repository;
 import com.human.mini_prj.constant.ItemSellStatus;
 import com.human.mini_prj.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -53,4 +54,14 @@ public interface ItemRepository extends JpaRepository<Item, Long> {  // JPA 설�
     // 10. count : 판매 상태별 상품 개수 (List가 아니라 long 반환)
     // SQL : select count(*) from item where item_sell_status = ?
     long countByItemSellStatus(ItemSellStatus itemSellStatus);
+
+    // JPQL(JPA Query Language): 객체지향 쿼리
+    @Query("SELECT i FROM Item i WHERE i.itemDetail LIKE %:itemDetail% ORDER BY i.price DESC")
+    List<Item> findByItemDetailLike(String itemDetail);
+
+    // nativeQuery: 실제 데이터베이스에서 상용하는 쿼리를 그대로 사용
+    @Query(value = "SELECT * FROM item WHERE item_detail LIKE %:itemDetail% ORDER BY price DESC", nativeQuery = true)
+    List<Item> findByItemSellStatusNative(ItemSellStatus itemDetail);
+
+
 }
