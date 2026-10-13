@@ -66,8 +66,47 @@ public class BoardService {
     }
 
     // 게시글 수정
+    public boolean updateBoard(Long id, BoardWriteReqDto dto) {
+        try {
+            Optional<Board> optionalBoard = boardRepository.findById(id);
+            if (optionalBoard.isEmpty()) {
+                throw new IllegalArgumentException("해당 게시글이 존재하지 않습니다: " + id);
+            }
+            Board board = optionalBoard.get();
 
-    // 게시글 삭제
+            // 작성자가 본인인지 확인
+            Member member = board.getMember();
+            String email = member.getEmail();
+            if (!email.equals(dto.getEmail())) {
+                throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
+            }
+
+            board.setTitle(dto.getTitle());
+            board.setContent(dto.getContent());
+            return true;
+        } catch (Exception e) {
+            log.error("게시글 수정 시 오류 발생: {}", e.getMessage());
+            return false;
+        }
+
+    }
+
+    // 게시글 삭제: 게시글 id로 글 삭제
+    public boolean deleteBoard(Long id) {
+        try {
+            Optional<Board> optionalBoard = boardRepository.findById(id);
+            if (optionalBoard.isEmpty()) {
+                throw new IllegalArgumentException("해당 게시글이 존재하지 않습니다.: " + id);
+            }
+            Board board = optionalBoard.get();
+            boardRepository.delete(board);
+            return true;
+        } catch (Exception e) {
+            log.error("게시글 삭제 시 오류 발생: {}", e.getMessage());
+            return false;
+        }
+    }
+
 
     // Entity -> Dto
     private BoardResDto toDto(Board board) {

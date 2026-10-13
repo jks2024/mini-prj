@@ -41,8 +41,16 @@ public class BoardController {
     }
 
     // 게시글 수정
+    @PutMapping("/{id}")
+    public ResponseEntity<Boolean> boardModify(@PathVariable Long id, @RequestBody BoardWriteReqDto dto) {
+        boolean result = boardService.updateBoard(id, dto);
+        return ResponseEntity.ok(result);
+    }
 
     // 게시글 삭제
-
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Boolean> boardDelete(@PathVariable Long id) {
+        boolean result = boardService.deleteBoard(id);
+        return ResponseEntity.ok(result);
+    }
 }
