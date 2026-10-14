@@ -2,7 +2,6 @@ package com.human.mini_prj.controller;
 
 import com.human.mini_prj.dto.CommentResDto;
 import com.human.mini_prj.dto.CommentWriteReqDto;
-import com.human.mini_prj.entity.Comment;
 import com.human.mini_prj.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ public class CommentController {
         List<CommentResDto> list = commentService.getCommentList(boardId);
         return ResponseEntity.ok(list);
     }
-
 
     // 댓글 작성
     @PostMapping("/write")
