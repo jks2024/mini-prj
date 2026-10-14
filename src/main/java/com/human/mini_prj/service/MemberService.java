@@ -2,10 +2,15 @@ package com.human.mini_prj.service;
 
 import com.human.mini_prj.dto.MemberResDto;
 import com.human.mini_prj.dto.MemberUpdateReqDto;
+import com.human.mini_prj.dto.PageResDto;
 import com.human.mini_prj.entity.Member;
 import com.human.mini_prj.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
@@ -63,6 +68,17 @@ public class MemberService {
             log.error("회원 삭제 시 오류 발생: {}", e.getMessage());
             return false;
         }
+    }
+
+    // 회원 목록 페이지 네이지네이션
+    public PageResDto<MemberResDto> getMemberPage(int page, int size) {
+        // PageRequest.of(페이지번호, 페이지크기, 정렬)
+        // - 페이지번호는 0부터 시작 (0 = 첫 페이지)
+        // - Sort.by(정렬방향, "엔티티 필드명") ← DB 컬럼명이 아니라 '엔티티 필드명'을 씀
+        Pageable pageable = PageRequest.of(page, size, Sort.by("regDate").descending());
+        Page<Member> memberPage = memberRepository.findAll(pageable);
+        Page<MemberResDto> memberResDtoPage = memberPage.map(this::toDto);
+        return new PageResDto<>(memberResDtoPage);
     }
 
     // Entity를 DTO로 변환하는 메서드 (pwd는 제외)

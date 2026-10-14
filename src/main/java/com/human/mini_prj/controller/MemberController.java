@@ -2,6 +2,7 @@ package com.human.mini_prj.controller;
 
 import com.human.mini_prj.dto.MemberResDto;
 import com.human.mini_prj.dto.MemberUpdateReqDto;
+import com.human.mini_prj.dto.PageResDto;
 import com.human.mini_prj.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,5 +44,15 @@ public class MemberController {
     @DeleteMapping("/{email}")
     public ResponseEntity<Boolean> memberDelete(@PathVariable String email) {
         return ResponseEntity.ok(memberService.deleteMember(email));
+    }
+
+    // 회원 목록 페이지네이션 조회
+    // GET http://localhost:8111/member/list/page?page=1&size=10
+    @GetMapping("/list/page")
+    public ResponseEntity<PageResDto<MemberResDto>> memberListPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(memberService.getMemberPage(page, size));
     }
 }

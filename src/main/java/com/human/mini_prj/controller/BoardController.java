@@ -2,6 +2,7 @@ package com.human.mini_prj.controller;
 
 import com.human.mini_prj.dto.BoardResDto;
 import com.human.mini_prj.dto.BoardWriteReqDto;
+import com.human.mini_prj.dto.PageResDto;
 import com.human.mini_prj.service.BoardService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -52,5 +53,15 @@ public class BoardController {
     public ResponseEntity<Boolean> boardDelete(@PathVariable Long id) {
         boolean result = boardService.deleteBoard(id);
         return ResponseEntity.ok(result);
+    }
+
+    // 게시글 목록 페이지네이션 조회
+    // GET http://localhost:8111/board/list/page?page=0&size=10
+    @GetMapping("/list/page")
+    public ResponseEntity<PageResDto<BoardResDto>> boardListPage(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(boardService.getBoardPage(page, size));
     }
 }
