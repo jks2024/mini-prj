@@ -1,6 +1,7 @@
 package com.human.mini_prj.controller;
 
 import com.human.mini_prj.dto.LoginReqDto;
+import com.human.mini_prj.dto.ReissueReqDto;
 import com.human.mini_prj.dto.SignUpReqDto;
 import com.human.mini_prj.dto.TokenDto;
 import com.human.mini_prj.security.SecurityUtil;
@@ -37,8 +38,8 @@ public class AuthController {
     }
     // 재발급
     @PostMapping("/reissue")
-    public ResponseEntity<TokenDto> reissue(@RequestBody LoginReqDto dto) {
-        return ResponseEntity.ok(authService.reissue(dto.getEmail()));
+    public ResponseEntity<TokenDto> reissue(@RequestBody ReissueReqDto dto) {
+        return ResponseEntity.ok(authService.reissue(dto.refreshToken()));
     }
     // 로그아웃
     @PostMapping("/logout")
