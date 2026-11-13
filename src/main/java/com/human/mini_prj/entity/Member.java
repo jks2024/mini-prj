@@ -45,6 +45,9 @@ public class Member {
     @Column(nullable = false, length = 20)
     private Provider provider;
 
+    @Column(length = 100)
+    private String providerId;  // 카카오 회원 번호 (카카오 회원 식별)
+
     @PrePersist // DB에 INSERT 되기 전에 실행되는 메소드
     public void prePersist() {
         this.regDate = LocalDateTime.now(); // 현재 날짜 및 시간으로 초기화
