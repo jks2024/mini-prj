@@ -6,6 +6,7 @@ import com.human.mini_prj.dto.PageResDto;
 import com.human.mini_prj.entity.Board;
 import com.human.mini_prj.entity.Member;
 import com.human.mini_prj.repository.BoardRepository;
+import com.human.mini_prj.repository.CommentRepository;
 import com.human.mini_prj.repository.MemberRepository;
 import com.human.mini_prj.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.Optional;
 public class BoardService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
+    private final CommentRepository commentRepository;  // 게시글 삭제 전 댓글 정리
 
     // 게시글 전체 조회 (최신순)
     public List<BoardResDto> getBoardList() {
@@ -90,6 +92,7 @@ public class BoardService {
             Board board = boardRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.: " + id));
             checkWriter(board.getMember());
+            commentRepository.deleteByBoardId(id);   // 댓글(FK)을 먼저 지워야 게시글 삭제 가능
             boardRepository.delete(board);
             return true;
         } catch (Exception e) {
@@ -108,7 +111,7 @@ public class BoardService {
 
     // 제목 또는 내용에 키워드 포함
     public PageResDto<BoardResDto> searchBoard(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("rgeTime").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("regTime").descending());
         Page<Board> boardPage = boardRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
         Page<BoardResDto> boardResDtoPage = boardPage.map(this::toDto);
         return new PageResDto<>(boardResDtoPage);

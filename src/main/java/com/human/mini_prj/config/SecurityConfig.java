@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/ws/**", "/chat/**").permitAll()     // 채팅은 JWT 제외
                         .requestMatchers(HttpMethod.GET, "/board/**", "/comment/**").permitAll() // 목록·상세 조회
+                        .requestMatchers("/admin/**").hasRole("ADMIN")              // ROLE_ADMIN만 (강제 만료 등)
                         .anyRequest().authenticated())                           // 글쓰기·수정·삭제·회원 API
                 .addFilterBefore(new JwtFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
         return http.build();
