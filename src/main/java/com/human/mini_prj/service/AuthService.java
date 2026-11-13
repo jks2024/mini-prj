@@ -75,7 +75,6 @@ public class AuthService {
         TokenDto tokenDto = tokenProvider.createToken(member.getEmail(), member.getAuthority());
         saveRefreshToken(member, tokenDto);
         return tokenDto;
-
     }
 
     // ★ 카카오 사용자 → Member
