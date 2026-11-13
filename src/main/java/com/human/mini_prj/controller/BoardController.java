@@ -59,7 +59,7 @@ public class BoardController {
     // GET http://localhost:8111/board/list/page?page=0&size=10
     @GetMapping("/list/page")
     public ResponseEntity<PageResDto<BoardResDto>> boardListPage(
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,   // Spring Data의 page는 0부터 시작
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(boardService.getBoardPage(page, size));
