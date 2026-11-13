@@ -1,5 +1,7 @@
 package com.human.mini_prj.service;
 
+import com.human.mini_prj.constant.Provider;
+import com.human.mini_prj.dto.KakaoUserInfo;
 import com.human.mini_prj.dto.SignUpReqDto;
 import com.human.mini_prj.dto.TokenDto;
 import com.human.mini_prj.entity.Member;
@@ -29,6 +31,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;  // 리플레시 토큰
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+    private final KakaoOAuthService kakaoOAuthService;  // 카카오통신
 
     // 회원 가입 여부 확인
     public boolean isDuplicatedEmail(String email) {
@@ -51,13 +54,41 @@ public class AuthService {
     public TokenDto login(String email, String pwd) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(this::loginFailed);
-        if (!passwordEncoder.matches(pwd, member.getPwd())) {   // 평문 vs 해시 비교
+        // 카카오 회원은 일반 로그인 불가 (카카오 회원은 비밀번호가 없음)
+        if (member.getPwd() == null || !passwordEncoder.matches(pwd, member.getPwd())) {   // 평문 vs 해시 비교
             throw loginFailed();
         }
         TokenDto tokenDto = tokenProvider.createToken(email, member.getAuthority());
         saveRefreshToken(member, tokenDto);   // 추가
         return tokenDto;
     }
+    // 카카오 로그인: 인가 코드 -> 카카오 사용자 확인 -> 우리 JWT 발급
+    public TokenDto kakaoLogin(String code) {
+        String kakaoToken = kakaoOAuthService.getAccessToken(code);
+        KakaoUserInfo info = kakaoOAuthService.getUserInfo(kakaoToken);
+
+        // 처음 이면 자종 가입, 이미 있으면 그대로 사용
+        Member member = memberRepository.findByProviderAndProviderId(Provider.KAKAO, info.id())
+                .orElseGet(() -> memberRepository.save(toKakaoMember(info)));
+
+        // 여기부터는 일반 로그인과 완전히 같음 (기존 코드 재사용)
+        TokenDto tokenDto = tokenProvider.createToken(member.getEmail(), member.getAuthority());
+        saveRefreshToken(member, tokenDto);
+        return tokenDto;
+
+    }
+
+    // ★ 카카오 사용자 → Member
+    private Member toKakaoMember(KakaoUserInfo info) {
+        Member member = new Member();
+        member.setEmail("kakao_" + info.id());   // 이메일 대신 고유한 대체값 → 토큰 sub·작성자 확인 코드 그대로 사용
+        member.setName(info.nickname());
+        member.setImage(info.profileImage());
+        member.setProvider(Provider.KAKAO);
+        member.setProviderId(info.id());
+        return member;                            // pwd는 null
+    }
+
 
     // 재발급: Refresh 검증 → DB 값과 비교 → 새 토큰 쌍 발급 + DB 교체 (Rotation)
     // 재사용 감지 시 DB 토큰을 지우고 예외를 던지므로, 삭제가 롤백되지 않게 noRollbackFor 지정
