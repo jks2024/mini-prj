@@ -1,9 +1,6 @@
 package com.human.mini_prj.controller;
 
-import com.human.mini_prj.dto.LoginReqDto;
-import com.human.mini_prj.dto.ReissueReqDto;
-import com.human.mini_prj.dto.SignUpReqDto;
-import com.human.mini_prj.dto.TokenDto;
+import com.human.mini_prj.dto.*;
 import com.human.mini_prj.security.SecurityUtil;
 import com.human.mini_prj.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +43,10 @@ public class AuthController {
     public ResponseEntity<Void> logout() {
         authService.logout(SecurityUtil.currentEmail());
         return ResponseEntity.noContent().build();
+    }
+    // 카카오 로그인: 인가 코드 -> 우리 서비스 토큰 발행
+    @PostMapping("/kakao")
+    public ResponseEntity<TokenDto> kakaoLogin(@RequestBody KakaoLoginReqDto dto) {
+        return ResponseEntity.ok(authService.kakaoLogin(dto.code()));
     }
 }

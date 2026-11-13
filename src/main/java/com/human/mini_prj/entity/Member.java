@@ -26,7 +26,7 @@ public class Member {
     @Column(length = 100) // 이름 필드 길이 제한
     private String name;
 
-    @Column(nullable = false) // 비밀번호는 필수 필드
+    @Column(nullable = true) // 비밀번호는 필수 필드
     private String pwd; // 비밀번호 저장 시 해시 암호화 적용 필요
 
     @Column(unique = true, length = 150) // 이메일 유니크 제약 조건 및 길이 제한
