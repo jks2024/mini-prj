@@ -2,7 +2,10 @@ package com.human.mini_prj.rag;
 
 import com.human.mini_prj.rag.dto.IndexReqDto;
 import com.human.mini_prj.rag.dto.IndexResDto;
+import com.human.mini_prj.rag.dto.QueryReqDto;
+import com.human.mini_prj.rag.dto.QueryResDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -11,16 +14,41 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.util.function.Supplier;
 
+// BoardService -> RagClient -> FastAPI
+
 // FastAPI 호출 담당
 @Component // Spring Container에 Bean 등록
 @RequiredArgsConstructor  // 생성자를 통한 의존성 주입을 자동으로 만들어 줌
 public class RagClient {
-    private final RestClient restClient;
+    private final RestClient ragRestClient;
 
     public int index(IndexReqDto req) {
-
+        IndexResDto res = call("색인", () -> ragRestClient.post()
+                .uri("/index")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(req)
+                .retrieve()
+                .body(IndexResDto.class));
+        return res == null ? 0 : res.chunks();
     }
 
+    public void delete(Long boardId) {
+        call("삭제", () -> ragRestClient.delete()
+                .uri("/index/{boardId}", boardId)
+                .retrieve()
+                .toBodilessEntity());
+    }
+
+    public QueryResDto query(QueryReqDto req) {
+        return call("질의", () -> ragRestClient.post()
+                .uri("/query")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(req)
+                .retrieve()
+                .body(QueryResDto.class));
+    }
+
+    // 타입 변수를 사용하므로 어떤 객체 타입이든 반환 가능
     private <T> T call(String action, Supplier<T> request) {
         try {
             return request.get();
