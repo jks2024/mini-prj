@@ -1,5 +1,6 @@
 package com.human.mini_prj.exception;
 
+import com.human.mini_prj.rag.RagUnavailableException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -59,5 +60,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse("알 수 없는 서버 오류가 발생했습니다.", "UNKNOWN"));
+    }
+
+    @ExceptionHandler(RagUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleRag(RagUnavailableException ex) {
+        log.error("AI 서비스 오류: {}", ex.getMessage(), ex);
+        return ResponseEntity
+                .status(HttpStatus.BAD_GATEWAY)   // 502
+                .body(new ErrorResponse(ex.getMessage(), "RAG_UNAVAILABLE"));
     }
 }
