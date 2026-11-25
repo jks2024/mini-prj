@@ -133,6 +133,8 @@ public class BoardService {
         dto.setEmail(board.getMember().getEmail());
         dto.setName(board.getMember().getName());
         dto.setRegDate(board.getRegTime());
+        dto.setIndexStatus(board.getIndexStatus());
+        dto.setIndexError(board.getIndexError());
         return dto;
     }
 
