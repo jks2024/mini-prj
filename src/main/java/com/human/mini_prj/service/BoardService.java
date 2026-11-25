@@ -1,16 +1,19 @@
 package com.human.mini_prj.service;
 
+import com.human.mini_prj.constant.IndexStatus;
 import com.human.mini_prj.dto.BoardResDto;
 import com.human.mini_prj.dto.BoardWriteReqDto;
 import com.human.mini_prj.dto.PageResDto;
 import com.human.mini_prj.entity.Board;
 import com.human.mini_prj.entity.Member;
+import com.human.mini_prj.rag.BoardIndexEvent;
 import com.human.mini_prj.repository.BoardRepository;
 import com.human.mini_prj.repository.CommentRepository;
 import com.human.mini_prj.repository.MemberRepository;
 import com.human.mini_prj.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +33,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final CommentRepository commentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 게시글 전체 조회 (최신순)
     public List<BoardResDto> getBoardList() {
@@ -62,6 +66,8 @@ public class BoardService {
             board.setContent(dto.getContent());
             board.setMember(member);
             boardRepository.save(board);
+            // 커밋이 끝나면 BoardIndexListener가 FastAPI 에 색인 요청
+            eventPublisher.publishEvent(BoardIndexEvent.upsert(board.getId()));
             return true;
         } catch (Exception e) {
             log.error("게시글 작성 시 오류 발생 : {}", e.getMessage());
@@ -78,6 +84,9 @@ public class BoardService {
             checkWriter(board.getMember());
             board.setTitle(dto.getTitle());
             board.setContent(dto.getContent());
+            // [RAG] 수정하는 동안은 검색 대상에서 빠지고, 다시 색인되면 READY
+            board.setIndexStatus(IndexStatus.INDEXING);
+            eventPublisher.publishEvent(BoardIndexEvent.upsert(id));
             return true;
         } catch (Exception e) {
             log.error("게시글 수정 시 오류 발생: {}", e.getMessage());
@@ -94,6 +103,8 @@ public class BoardService {
             checkWriter(board.getMember());
             commentRepository.deleteByBoardId(id);   // 댓글(FK)을 먼저 지워야 게시글 삭제 가능
             boardRepository.delete(board);
+            // [RAG] 벡터 DB 의 청크도 삭제 (실패해도 READY 허용목록에 없으므로 검색되지 않음)
+            eventPublisher.publishEvent(BoardIndexEvent.delete(id));
             return true;
         } catch (Exception e) {
             log.error("게시글 삭제 시 오류 발생: {}", e.getMessage());
