@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.springframework.util.StringUtils.truncate;
 
@@ -43,6 +44,29 @@ public class BoardIndexService {  // 색인, 삭제
             log.error("[RAG] 색인 실패: board={} reason={}", boardId, reason);
             return IndexStatus.FAILED;
         }
+    }
+    public void remove(Long boardId) {
+        try {
+            ragClient.delete(boardId);
+            log.info("[RAG] 청크 삭제 완료: board={}", boardId);
+        } catch (Exception e) {
+            log.warn("[RAG] 청크 삭제 실패(허용목록으로 차단됨): board={} reason={}", boardId, e.getMessage());
+        }
+    }
 
+    // 전체 재색인: 스텁 엔진 재시작 후, Atlas 로 엔진을 바꾼 뒤, 기존 글을 처음 색인할 때
+    public int reindexAll() {
+        List<Long> ids = boardRepository.findAllIds();
+        int ready = 0;
+        for (Long id : ids) {
+            if (index(id) == IndexStatus.READY) ready++;
+        }
+        log.info("[RAG] 전체 재색인: {}건 중 {}건 READY", ids.size(), ready);
+        return ready;
+    }
+
+    private String truncate(String s, int max) {
+        if (s == null) return "알 수 없는 오류";
+        return s.length() <= max ? s : s.substring(0, max);
     }
 }
