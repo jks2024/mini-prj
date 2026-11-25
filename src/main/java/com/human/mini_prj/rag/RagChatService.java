@@ -1,11 +1,13 @@
 package com.human.mini_prj.rag;
 
+import com.human.mini_prj.constant.IndexStatus;
 import com.human.mini_prj.exception.CustomException;
 import com.human.mini_prj.rag.dto.QueryReqDto;
 import com.human.mini_prj.rag.dto.QueryResDto;
 import com.human.mini_prj.rag.dto.RagChatReqDto;
 import com.human.mini_prj.rag.dto.SourceDto;
 import com.human.mini_prj.repository.BoardRepository;
+import com.human.mini_prj.repository.MemberRepository;
 import com.human.mini_prj.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class RagChatService {
     private final RagClient ragClient;  // FastAPI 통신
     private final RagProperties ragProperties;  // 환경설정 정보
     private final BoardRepository boardRepository;  // 게시들 DB 접근
+    private final MemberRepository memberRepository;
 
     // RagChatController -> RagChatService -> RagClient -> FastAPI
     // 질문 검증 -> 허용 목록 계산 -> 응답
@@ -48,8 +51,15 @@ public class RagChatService {
                 : res.sources().stream().filter(s -> allowSet.contains(s.boardId())).toList();
         return res.withSources(safeSources);
     }
+    // READY 허용목록: "mine" 이면 내 글만 (email 은 ask() 에서 SecurityUtil.currentEmail() 로 넘겨받음)
     private List<Long> allowList(String scope, String email) {
-        return boardRepository.findAllIds();
+        if ("mine".equals(scope)) {
+            if (email == null || !memberRepository.existsByEmail(email)) {
+                throw new CustomException("LOGIN_REQUIRED", "내 글에서 찾으려면 로그인해 주세요.");
+            }
+            return boardRepository.findIdsByIndexStatusAndEmail(IndexStatus.READY, email);
+        }
+        return boardRepository.findIdsByIndexStatus(IndexStatus.READY);
     }
 
 }
