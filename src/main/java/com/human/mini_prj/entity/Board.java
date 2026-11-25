@@ -1,6 +1,7 @@
 package com.human.mini_prj.entity;
 // 게시글 작성
 
+import com.human.mini_prj.constant.IndexStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +30,14 @@ public class Board {
     public void increaseViewCount() {
         this.viewCount++;
     }
+
+    @Enumerated(EnumType.STRING)
+    private IndexStatus indexStatus = IndexStatus.INDEXING;
+
+    @Column(length = 500)
+    private String indexError;   // 색인 실패 사유
+
+    private String indexedAt;    // 마지막 색인 성공 시각
 
     private LocalDateTime regTime;  // 작성일
     @PrePersist
